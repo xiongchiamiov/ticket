@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then
+	$0 help
+	exit 1
+fi
+
+case $1 in
+	'list')
+		if [ "$2" = 'active' ] || [ "$2" = '' ]; then
+			echo 'Active tickets:'
+			screen -ls | grep 'tached' | sed 's/^.*\./   /' | grep -E '^   #[0-9]+'
+			echo
+		fi
+		if [ "$2" = 'open' ] || [ "$2" = '' ]; then
+			echo 'Open tickets:'
+			echo 'Not yet implemented.'
+			echo
+		fi
+		if [ "$2" = 'blocked' ] || [ "$2" = '' ]; then
+			echo 'Blocked tickets:'
+			echo 'Not yet implemented.'
+			echo
+		fi
+		;;
+	'start')
+		if [ "$2" = '' ]; then
+			$0 help start
+			exit 1
+		fi
+
+		screen -DRR "#$2"
+		;;
+	'help')
+		echo 'Help not yet implemented.'
+esac
+
