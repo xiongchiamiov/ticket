@@ -27,6 +27,25 @@ case $1 in
 			exit 1
 		fi
 
+		# Unfortunately, because of the way git works, changes are separate from
+		# branches, which is normally good, but makes it hard for us to keep
+		# changes in one branch separate from those in another.  So, we stash
+		# things away and pop them off again when we come back.  The downside of
+		# this is that you shouldn't use stash for anything else, since your
+		# stashed changes could get popped off unexpectedly.  You also shouldn't
+		# work on two things at the same time, because the working directory on
+		# the first will be changed when you start the second.
+		# An alternative approach would be to litter a directory with copies of
+		# trunk and change around symlinks.
+		#cd ~/Code &&
+		git add .  # Make sure we stash new files
+		git stash
+		git checkout master # Make sure we start new tickets from master
+		git checkout -B "#$2"
+		# Stashes aren't tied directly to branches, but `git stash list` displays
+		# the branch they were created on.  So, get the most recent one of those.
+		stash=$(git stash list | grep "WIP on #$2:" | head -1 | sed 's/}:.*/}/')
+		[ $stash ] && git stash pop $stash && git reset HEAD .
 		screen -DRR "#$2"
 		;;
 	'help')
