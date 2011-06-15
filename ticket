@@ -4,6 +4,12 @@
 # possibly in a more sophisticated scripting language.
 
 case $1 in
+	'setup')
+		cd &&
+		git svn clone file:///var/ifixit/CodeRepos/ -s &&
+		mv Code Code.bak &&
+		mv CodeRepos Code
+		;;
 	'list')
 		if [ "$2" = 'active' ] || [ "$2" = '' ]; then
 			echo 'Active tickets:'
