@@ -47,6 +47,7 @@ case $1 in
 		git add .  # Make sure we stash new files
 		git stash
 		git checkout master # Make sure we start new tickets from master
+		git svn rebase # Update from svn
 		git checkout -B "#$2"
 		# Stashes aren't tied directly to branches, but `git stash list` displays
 		# the branch they were created on.  So, get the most recent one of those.
