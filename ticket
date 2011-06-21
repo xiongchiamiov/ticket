@@ -43,7 +43,15 @@ case $1 in
 		# the first will be changed when you start the second.
 		# An alternative approach would be to litter a directory with copies of
 		# trunk and change around symlinks.
+		# I'd think that `cd`ing would work, but it seems that screen won't start
+		# with that directory.  So, we'll just tell people they need to be in
+		# `~/Code`.
 		#cd ~/Code &&
+		if [ ! `pwd` = ~/Code ]; then
+			echo 'You need to run this in ~/Code !'
+			exit 1
+		fi
+
 		git add .  # Make sure we stash new files
 		git stash
 		git checkout master # Make sure we start new tickets from master
