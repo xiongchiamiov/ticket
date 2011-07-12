@@ -69,7 +69,7 @@ def start(ticket):
       exit(1)
 
    stop()
-   shell('git checkout -B #%s' % ticket)
+   shell("git checkout -B '#%s'" % ticket)
    # Stashes aren't tied directly to branches, but `git stash list` displays
    # the branch they were created on.  So, get the most recent one of those.
    stash = shell("git stash list | grep 'WIP on #%s:' | head -1 | sed 's/}:.*/}/'" % ticket)[1]
