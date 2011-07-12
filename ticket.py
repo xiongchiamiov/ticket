@@ -79,7 +79,7 @@ def start(ticket):
    # We have to use one of the exec* functions because we aren't interested in
    # launching a subshell - we want to throw the user into screen!
    # The second parameter is the name that will show up in ps.
-   execlp('screen', 'screen', '-DRR', "#%s" % ticket)
+   execlp('screen', 'screen (ticket)', '-DRR', "#%s" % ticket)
 
 def stop():
    ''' Stop working on a ticket. '''
