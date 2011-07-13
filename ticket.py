@@ -6,7 +6,18 @@ from os.path import expanduser
 from subprocess import PIPE, Popen, STDOUT
 from sys import exit
 
-def shell(command):
+class ShellError(Exception):
+   def __init__(self, command, returnCode, output):
+      self.command = command
+      self.returnCode = returnCode
+      self.output = output
+
+   def __str__(self):
+      return '''Command '%s' exited with non-zero exit code %s.
+      Output:
+      %s ''' % (self.command, self.returnCode, self.output)
+
+def shell(command, expectedReturnCode=0):
    r'''
    Run `command` through the shell and return a tuple of the return code
    and the output.
@@ -15,10 +26,21 @@ def shell(command):
    (0, 'Linux\n')
 
    >>> shell('ld -f')
+   Traceback (most recent call last):
+      ...
+   ShellError: Command 'ld -f' exited with non-zero exit code 1.
+         Output:
+         ld: unrecognized option '-f'
+   ld: use the --help option for usage information
+   <BLANKLINE>
+
+   >>> shell('ld -f', 1)
    (1, "ld: unrecognized option '-f'\nld: use the --help option for usage information\n")
    '''
    p = Popen(command, shell=True, stdout=PIPE, stderr=STDOUT)
    output = p.communicate()[0]
+   if p.returncode != expectedReturnCode:
+      raise ShellError(command, p.returncode, output)
    return (p.returncode, output)
 
 def setup():
@@ -74,7 +96,7 @@ def start(ticket):
    # the branch they were created on.  So, get the most recent one of those.
    stash = shell("git stash list | grep 'WIP on #%s:' | head -1 | sed 's/}:.*/}/'" % ticket)[1].rstrip()
    if stash:
-      shell('git stash pop ' + stash + ' && git reset HEAD .')
+      shell('git stash pop ' + stash + ' && git reset HEAD .', 1)
 
    # We have to use one of the exec* functions because we aren't interested in
    # launching a subshell - we want to throw the user into screen!
