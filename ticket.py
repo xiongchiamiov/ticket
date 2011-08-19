@@ -43,6 +43,18 @@ def shell(command, expectedReturnCode=0):
       raise ShellError(command, p.returncode, output)
    return (p.returncode, output)
 
+def stash_list(ticket):
+   ''' Return a generator that yields stash refs created while working on `ticket`. '''
+   # Stashes aren't tied directly to branches, but `git stash list` displays
+   # the branch they were created on.  So, get the most recent one of those.
+   while True:
+      stash = shell("git stash list | grep 'WIP on #%s:' | head -1 | sed 's/}:.*/}/'" % ticket)[1].rstrip()
+      if stash:
+         yield stash
+      else:
+         return
+
+## Command functions
 def setup():
    ''' Backup ~/Code and create a new Code directory suitable for use with ticket. '''
    shell('''
@@ -92,11 +104,12 @@ def start(ticket):
 
    stop()
    shell("git checkout -B '#%s'" % ticket)
-   # Stashes aren't tied directly to branches, but `git stash list` displays
-   # the branch they were created on.  So, get the most recent one of those.
-   stash = shell("git stash list | grep 'WIP on #%s:' | head -1 | sed 's/}:.*/}/'" % ticket)[1].rstrip()
-   if stash:
+
+   try:
+      stash = stash_list(ticket).next()
       shell('git stash pop ' + stash + ' && git reset HEAD .', 1)
+   except StopIteration:
+      pass
 
    # We have to use one of the exec* functions because we aren't interested in
    # launching a subshell - we want to throw the user into screen!
@@ -109,6 +122,18 @@ def stop():
    shell('git stash')
    shell('git checkout master') # Make sure we start new tickets from master
    shell('git svn rebase') # Update from svn
+
+def kill(ticket):
+   ''' Completely finish working on a ticket. '''
+   # I don't know why argparse is giving this in a list
+   ticket = ticket[0]
+
+   stop()
+   shell("screen -S '#%s' -X quit" % ticket)
+   shell("git branch -D '#%s'" % ticket)
+   # There might be a number of stashes created from our branch
+   for stash in stash_list(ticket):
+      shell('git stash drop ' + stash)
 
 if __name__=='__main__':
    import doctest
@@ -130,6 +155,10 @@ if __name__=='__main__':
 
    parser_stop = subparsers.add_parser('stop', description=stop.__doc__)
    parser_stop.set_defaults(func=stop)
+
+   parser_kill = subparsers.add_parser('kill', description=kill.__doc__)
+   parser_kill.add_argument('ticket', type=int, nargs=1)
+   parser_kill.set_defaults(func=kill)
 
    # Because I didn't want to pass an argparse.Namespace to the functions and
    # have to access everything through args.foo, we pull out the values as a
