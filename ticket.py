@@ -116,6 +116,14 @@ def start(ticket):
    # The second parameter is the name that will show up in ps.
    execlp('screen', 'screen (ticket)', '-DRR', "#%s" % ticket)
 
+def resume():
+   ''' Resume working on whatever ticket was last active. '''
+   screen = shell("git branch | grep '*' | sed 's/\* //'")[1].strip()
+   # We have to use one of the exec* functions because we aren't interested in
+   # launching a subshell - we want to throw the user into screen!
+   # The second parameter is the name that will show up in ps.
+   execlp('screen', 'screen (ticket)', '-r', screen)
+
 def stop():
    ''' Stop working on a ticket. '''
    shell('git add .') # Make sure we stash new files
@@ -152,6 +160,9 @@ if __name__=='__main__':
    parser_start = subparsers.add_parser('start', description=start.__doc__)
    parser_start.add_argument('ticket', type=int, nargs=1)
    parser_start.set_defaults(func=start)
+
+   parser_resume = subparsers.add_parser('resume', description=resume.__doc__)
+   parser_resume.set_defaults(func=resume)
 
    parser_stop = subparsers.add_parser('stop', description=stop.__doc__)
    parser_stop.set_defaults(func=stop)
