@@ -119,6 +119,9 @@ def start(ticket):
 def resume():
    ''' Resume working on whatever ticket was last active. '''
    screen = shell("git branch | grep '*' | sed 's/\* //'")[1].strip()
+   if (screen == 'master'):
+      print "You were last seen on master, not a ticket branch!"
+      exit(2)
    # We have to use one of the exec* functions because we aren't interested in
    # launching a subshell - we want to throw the user into screen!
    # The second parameter is the name that will show up in ps.
